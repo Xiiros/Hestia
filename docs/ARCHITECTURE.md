@@ -49,24 +49,33 @@ sur Raspberry Pi. Il se compose de deux couches :
   désactiver le DHCP de sa box), idéalement via une page de config locale, et
   **détecte un éventuel DHCP concurrent** sur le réseau pour éviter les conflits.
 
-## Structure proposée du dépôt (couche agent)
+## Structure du dépôt (couche agent)
 
-> Esquisse — à créer quand le développement commence.
+Le projet Python est géré par [uv](https://docs.astral.sh/uv/) (structure `src/`).
 
 ```
-hestia/                    # paquet Python de l'agent
-├── app.py                 # boucle principale / orchestration
-├── config/                # lecture-écriture config, assistant 1er démarrage
-├── adguard/               # client de l'API AdGuard Home (stats, réglages)
-├── display/               # rendu e-paper (pilote Waveshare) + vues/écrans
-├── updater/               # OTA : vérif version, téléchargement signé, rollback
-└── system/                # santé, réseau, détection de conflit DHCP
+src/hestia/                # paquet Python de l'agent
+├── app.py                 # point d'entrée / boucle principale
+├── settings.py            # configuration (TOML + valeurs par défaut)
+├── adguard/               # client de l'API AdGuard Home (stats, statut)
+├── display/               # interface d'affichage : console (dev) + e-paper
+├── onboarding/            # 1er démarrage : détection DHCP + tutoriels par box
+├── system/               # réseau : sonde DHCP, identification de la box
+└── updater/               # OTA : comparaison de versions, application (à venir)
 
 tests/                     # tests unitaires (pytest)
-pyproject.toml             # métadonnées + dépendances
-requirements.txt           # dépendances épinglées
-systemd/                   # unités systemd (hestia-agent, hestia-updater)
-image/                     # scripts de construction de l'image Raspberry Pi
+systemd/                   # unités systemd (hestia-agent…)
+pyproject.toml             # métadonnées, dépendances, outillage
+uv.lock                    # dépendances verrouillées
+```
+
+Dépendances optionnelles (extras) : `net` (scapy, sonde DHCP) et `hardware`
+(Pillow, rendu e-paper) — non requises pour les tests. Commandes utiles :
+
+```bash
+uv sync --group dev        # environnement de développement
+uv run hestia --demo       # démonstration sans matériel ni AdGuard Home
+uv run ruff check . && uv run pytest
 ```
 
 Le fichier [`VERSION`](../VERSION) (déjà présent) est la version affichée à

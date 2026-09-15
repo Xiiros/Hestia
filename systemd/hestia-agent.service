@@ -1,0 +1,15 @@
+[Unit]
+Description=Agent Hestia (tableau de bord e-paper + orchestration AdGuard Home)
+# Démarre après le réseau et AdGuard Home.
+After=network-online.target AdGuardHome.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+# La sonde DHCP nécessite les privilèges réseau (root ou CAP_NET_RAW).
+ExecStart=/opt/hestia/.venv/bin/hestia
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
