@@ -29,7 +29,12 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser.add_argument(
         "--demo",
         action="store_true",
-        help="mode démonstration : écran console et données factices",
+        help="mode démonstration : données factices, sans matériel ni AdGuard Home",
+    )
+    parser.add_argument(
+        "--png",
+        metavar="FICHIER",
+        help="en démo : rend l'écran dans ce fichier PNG au lieu du terminal",
     )
     return parser.parse_args(argv)
 
@@ -79,15 +84,29 @@ def _run(settings: Settings, display: Display) -> None:  # pragma: no cover - bo
             time.sleep(settings.display.refresh_seconds)
 
 
+def _demo_display(png_path: str | None) -> Display:
+    if png_path:
+        from hestia.display.png import PngDisplay
+        from hestia.display.render import DisplaySpec
+
+        return PngDisplay(DisplaySpec(), Path(png_path))
+    from hestia.display import ConsoleDisplay
+
+    return ConsoleDisplay()
+
+
 def main(argv: list[str] | None = None) -> int:
     args = _parse_args(argv)
 
     if args.demo:
-        _run_demo(build_display("console"))
+        display = _demo_display(args.png)
+        _run_demo(display)
+        if args.png:
+            print(f"[hestia] écran rendu dans {args.png}")
         return 0
 
     settings = load_settings()
-    display = build_display(settings.display.kind)
+    display = build_display(settings.display)
     _run(settings, display)
     return 0
 

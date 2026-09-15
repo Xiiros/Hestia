@@ -40,6 +40,7 @@ dev = [
     "pytest>=8.0",
     "ruff>=0.6",
     "cryptography>=42.0",  # pour tester la vérification de signature OTA
+    "pillow>=10.1",  # pour tester le rendu de l'écran (afficheur PNG)
 ]
 
 [tool.ruff]

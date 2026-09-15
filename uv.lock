@@ -217,6 +217,7 @@ ota = [
 [package.dev-dependencies]
 dev = [
     { name = "cryptography" },
+    { name = "pillow" },
     { name = "pytest" },
     { name = "ruff" },
 ]
@@ -233,6 +234,7 @@ provides-extras = ["hardware", "net", "ota"]
 [package.metadata.requires-dev]
 dev = [
     { name = "cryptography", specifier = ">=42.0" },
+    { name = "pillow", specifier = ">=10.1" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "ruff", specifier = ">=0.6" },
 ]

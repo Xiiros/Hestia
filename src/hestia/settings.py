@@ -27,9 +27,17 @@ class AdGuardSettings:
 class DisplaySettings:
     """Configuration de l'écran."""
 
-    # "console" pour le développement, "epaper" sur la Raspberry Pi.
+    # "console" ou "png" pour le développement, "epaper" sur la Raspberry Pi.
     kind: str = "console"
     refresh_seconds: int = 30
+    # Géométrie (indépendante du pilote) — à ajuster selon le modèle d'écran.
+    width: int = 250
+    height: int = 122
+    font_path: str = ""  # TTF optionnel ; sinon police par défaut
+    # Modèle de pilote Waveshare (pour kind="epaper").
+    model: str = "epd2in13_V4"
+    # Fichier de sortie pour kind="png".
+    png_path: str = "hestia-screen.png"
 
 
 @dataclass(slots=True)
