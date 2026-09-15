@@ -40,7 +40,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # TODO: remplacer par le lint et les tests réels une fois le langage choisi
-      # (ex: cargo test, npm test, pytest…). Garder ce job vert et obligatoire.
-      - name: Placeholder
-        run: echo "Aucun test pour l'instant — à compléter quand le code arrive."
+      - name: Installer uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: Installer les dépendances
+        run: uv sync --group dev
+      - name: Lint (ruff)
+        run: uv run ruff check .
+      - name: Format (ruff)
+        run: uv run ruff format --check .
+      - name: Tests (pytest)
+        run: uv run pytest -q

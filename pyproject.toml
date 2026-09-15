@@ -1,0 +1,49 @@
+[project]
+name = "hestia"
+description = "Agent Hestia : surcouche AdGuard Home, écran e-paper et mises à jour"
+readme = "README.md"
+requires-python = ">=3.11"
+dynamic = ["version"]
+dependencies = [
+    "httpx>=0.27",
+]
+
+[project.optional-dependencies]
+# Sonde DHCP (nécessite des privilèges root sur la Raspberry Pi).
+net = ["scapy>=2.5"]
+# Rendu de l'écran e-paper (le pilote Waveshare est fourni à part sur la Pi).
+hardware = ["pillow>=10.0"]
+
+[project.scripts]
+hestia = "hestia.app:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+# La version unique du projet vit dans le fichier VERSION (voir ADR-0005).
+[tool.hatch.version]
+path = "VERSION"
+pattern = '(?P<version>\d+\.\d+\.\d+)'
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/hestia"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/hestia", "VERSION", "README.md"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.6",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
