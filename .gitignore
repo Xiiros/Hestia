@@ -1,0 +1,11 @@
+# OS / éditeurs
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# Sorties temporaires
+RELEASE_NOTES.md
+*.log
+*.tmp
