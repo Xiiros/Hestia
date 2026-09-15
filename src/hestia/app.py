@@ -15,11 +15,11 @@ import time
 from pathlib import Path
 
 from hestia import __version__
-from hestia.adguard import AdGuardClient, AdGuardError, Stats
+from hestia.adguard import AdGuardClient, AdGuardError, DhcpConfig, Stats
 from hestia.display import Display, build_display
 from hestia.display.views import dashboard
 from hestia.onboarding import firstboot
-from hestia.settings import Settings, load_settings
+from hestia.settings import DhcpSettings, Settings, load_settings
 from hestia.system import probe_dhcp_servers, read_ipv4_addresses, read_mac
 
 
@@ -44,8 +44,27 @@ def _run_demo(display: Display) -> None:
     display.show(dashboard(stats))
 
 
+def build_dhcp_config(dhcp: DhcpSettings) -> DhcpConfig | None:
+    """Construit la config DHCP à appliquer, ou ``None`` si l'activation n'est
+    pas demandée ou si la plage d'adresses n'est pas renseignée."""
+
+    if not dhcp.enable_on_first_boot:
+        return None
+    if not (dhcp.gateway_ip and dhcp.range_start and dhcp.range_end):
+        return None
+    return DhcpConfig(
+        interface=dhcp.interface,
+        gateway_ip=dhcp.gateway_ip,
+        subnet_mask=dhcp.subnet_mask,
+        range_start=dhcp.range_start,
+        range_end=dhcp.range_end,
+        lease_duration=dhcp.lease_duration,
+    )
+
+
 def _first_boot(settings: Settings, display: Display) -> None:  # pragma: no cover - I/O
-    """Détecte et fait résoudre un conflit DHCP au tout premier démarrage."""
+    """Détecte et fait résoudre un conflit DHCP au tout premier démarrage, puis
+    active le serveur DHCP d'AdGuard Home si la configuration le demande."""
 
     marker = Path(settings.state_dir) / "first-boot-done"
     if firstboot.is_done(marker):
@@ -61,10 +80,18 @@ def _first_boot(settings: Settings, display: Display) -> None:  # pragma: no cov
         poll_seconds=settings.network.first_boot_poll_seconds,
         timeout=settings.network.dhcp_probe_timeout,
     )
-    if resolved:
-        # TODO: activer le serveur DHCP d'AdGuard Home ici (via son API) avant
-        # de marquer le premier démarrage comme terminé.
-        firstboot.mark_done(marker)
+    if not resolved:
+        return
+
+    config = build_dhcp_config(settings.dhcp)
+    if config is not None:
+        with AdGuardClient(
+            settings.adguard.base_url,
+            settings.adguard.username,
+            settings.adguard.password,
+        ) as client:
+            client.configure_dhcp(config)
+    firstboot.mark_done(marker)
 
 
 def _run(settings: Settings, display: Display) -> None:  # pragma: no cover - boucle
