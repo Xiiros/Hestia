@@ -1,0 +1,8 @@
+[Unit]
+Description=Hestia — vérification et application des mises à jour OTA
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/hestia/.venv/bin/hestia-update

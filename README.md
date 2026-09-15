@@ -15,6 +15,7 @@ distance.
 ## Documentation
 
 - [Architecture](docs/ARCHITECTURE.md) — vue d'ensemble technique.
+- [Mises à jour OTA](docs/OTA.md) — signature, canaux, installation avec rollback.
 - [Décisions d'architecture (ADR)](docs/adr/) — les choix techniques et leur *pourquoi*.
 - [Contribuer](CONTRIBUTING.md) — branches, commits, revues et fusions.
 - [Sortir une version](docs/RELEASING.md) — releases et déploiement sur la flotte.
