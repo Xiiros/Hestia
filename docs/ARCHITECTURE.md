@@ -61,7 +61,7 @@ src/hestia/                # paquet Python de l'agent
 ├── app.py                 # point d'entrée / boucle principale
 ├── settings.py            # configuration (TOML + valeurs par défaut)
 ├── adguard/               # client de l'API AdGuard Home (stats, statut)
-├── display/               # interface d'affichage : console (dev) + e-paper
+├── display/               # affichage : rendu partagé (PIL) → console/PNG (dev) + e-paper
 ├── onboarding/            # 1er démarrage : boucle de détection DHCP + tutoriels par box
 ├── system/               # réseau : sonde DHCP, MAC/IP locales, identification de la box
 └── updater/               # OTA : source GitHub, signature, install atomique + rollback
@@ -76,10 +76,16 @@ Dépendances optionnelles (extras) : `net` (scapy, sonde DHCP) et `hardware`
 (Pillow, rendu e-paper) — non requises pour les tests. Commandes utiles :
 
 ```bash
-uv sync --group dev        # environnement de développement
-uv run hestia --demo       # démonstration sans matériel ni AdGuard Home
+uv sync --group dev            # environnement de développement
+uv run hestia --demo           # démonstration console, sans matériel
+uv run hestia --demo --png out.png  # prévisualise l'écran dans un PNG
 uv run ruff check . && uv run pytest
 ```
+
+Le rendu est **indépendant du modèle** d'écran (`display/render.py` dessine dans
+une image PIL de taille configurable). Le même rendu alimente l'afficheur PNG de
+test et l'e-paper réel ; seule la liaison au pilote Waveshare (`display/epaper.py`,
+choisie par `display.model`) dépend du modèle.
 
 Le fichier [`VERSION`](../VERSION) (déjà présent) est la version affichée à
 l'écran et la référence de l'updater pour comparer les versions.
