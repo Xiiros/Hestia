@@ -48,9 +48,9 @@ sur Raspberry Pi. Il se compose de deux couches :
 - **Premier démarrage** : au premier lancement (marqueur dans `state_dir`),
   l'agent lit la MAC/IP de son interface, **sonde le réseau** et, tant qu'un DHCP
   concurrent répond, **affiche le tutoriel** de désactivation adapté à la box en
-  re-sondant périodiquement. Dès que le conflit disparaît, il affiche une
-  confirmation et démarre. Reste à brancher : l'activation du DHCP d'AdGuard Home
-  via son API juste avant de valider le premier démarrage.
+  re-sondant périodiquement. Une fois le conflit résolu, il **active le serveur
+  DHCP d'AdGuard Home** via l'API (si `dhcp.enable_on_first_boot` et une plage
+  sont configurés), puis valide le premier démarrage.
 
 ## Structure du dépôt (couche agent)
 
@@ -60,7 +60,7 @@ Le projet Python est géré par [uv](https://docs.astral.sh/uv/) (structure `src
 src/hestia/                # paquet Python de l'agent
 ├── app.py                 # point d'entrée / boucle principale
 ├── settings.py            # configuration (TOML + valeurs par défaut)
-├── adguard/               # client de l'API AdGuard Home (stats, statut)
+├── adguard/               # client de l'API AdGuard Home (auth, stats, statut, DHCP)
 ├── display/               # affichage : rendu partagé (PIL) → console/PNG (dev) + e-paper
 ├── onboarding/            # 1er démarrage : boucle de détection DHCP + tutoriels par box
 ├── system/               # réseau : sonde DHCP, MAC/IP locales, identification de la box

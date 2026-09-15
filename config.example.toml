@@ -1,0 +1,45 @@
+# Exemple de configuration Hestia.
+# Copier vers /etc/hestia/config.toml et adapter. Toute valeur omise prend une
+# valeur par défaut raisonnable (voir hestia/settings.py).
+
+# Répertoire d'état persistant (marqueur de premier démarrage, etc.).
+state_dir = "/var/lib/hestia"
+
+[adguard]
+base_url = "http://127.0.0.1:3000"
+username = "admin"
+password = ""              # mot de passe de l'interface AdGuard Home
+
+[display]
+kind = "epaper"            # "console" ou "png" en développement, "epaper" sur la Pi
+refresh_seconds = 30
+width = 250                # géométrie de l'écran (selon le modèle)
+height = 122
+model = "epd2in13_V4"      # pilote Waveshare (kind = "epaper")
+# font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+# png_path = "hestia-screen.png"   # sortie pour kind = "png"
+
+[update]
+channel = "stable"        # "stable" ou "beta"
+check_seconds = 3600
+repo = "Xiiros/Hestia"
+install_root = "/opt/hestia"
+public_key_path = "/etc/hestia/update-key.pub"
+asset_suffix = ".tar.gz"
+
+[network]
+interface = "eth0"
+dhcp_probe_timeout = 5.0
+first_boot_poll_seconds = 15.0
+
+# Serveur DHCP d'AdGuard Home, activé par Hestia à la fin du premier démarrage.
+# Laisser enable_on_first_boot = false tant que la plage n'est pas définie :
+# un DHCP mal configuré casserait le réseau du foyer.
+[dhcp]
+enable_on_first_boot = false
+interface = "eth0"
+gateway_ip = "192.168.1.1"       # IP de la box (passerelle Internet des clients)
+subnet_mask = "255.255.255.0"
+range_start = "192.168.1.100"
+range_end = "192.168.1.200"
+lease_duration = 86400

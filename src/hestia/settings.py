@@ -62,11 +62,29 @@ class NetworkSettings:
 
 
 @dataclass(slots=True)
+class DhcpSettings:
+    """Serveur DHCP d'AdGuard Home activé par Hestia à la fin du premier démarrage.
+
+    Désactivé par défaut : tant que la plage n'est pas renseignée, on n'active
+    rien (un DHCP mal configuré casserait le réseau du foyer).
+    """
+
+    enable_on_first_boot: bool = False
+    interface: str = "eth0"
+    gateway_ip: str = ""  # IP de la box (passerelle Internet des clients)
+    subnet_mask: str = "255.255.255.0"
+    range_start: str = ""
+    range_end: str = ""
+    lease_duration: int = 86400
+
+
+@dataclass(slots=True)
 class Settings:
     adguard: AdGuardSettings = field(default_factory=AdGuardSettings)
     display: DisplaySettings = field(default_factory=DisplaySettings)
     update: UpdateSettings = field(default_factory=UpdateSettings)
     network: NetworkSettings = field(default_factory=NetworkSettings)
+    dhcp: DhcpSettings = field(default_factory=DhcpSettings)
     # Données d'état persistantes (marqueur de premier démarrage, etc.).
     state_dir: str = "/var/lib/hestia"
 
@@ -85,6 +103,7 @@ def load_settings(path: Path | None = None) -> Settings:
         display=DisplaySettings(**data.get("display", {})),
         update=UpdateSettings(**data.get("update", {})),
         network=NetworkSettings(**data.get("network", {})),
+        dhcp=DhcpSettings(**data.get("dhcp", {})),
     )
     if "state_dir" in data:
         settings.state_dir = data["state_dir"]
