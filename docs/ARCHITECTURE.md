@@ -43,8 +43,8 @@ sur Raspberry Pi. Il se compose de deux couches :
   semi-statique, pas une animation).
 - **Mises à jour** : l'updater vérifie le canal (beta/stable) sur les releases
   GitHub, télécharge la version, **vérifie sa signature**, l'applique, lance un
-  **contrôle de santé**, et **revient en arrière** en cas d'échec (voir
-  [ADR-0005](adr/0005-mises-a-jour-ota-maison.md)).
+  **contrôle de santé**, et **revient en arrière** en cas d'échec. Détails dans
+  [docs/OTA.md](OTA.md) (voir aussi [ADR-0005](adr/0005-mises-a-jour-ota-maison.md)).
 - **Premier démarrage** : l'agent guide la configuration (l'utilisateur doit
   désactiver le DHCP de sa box), idéalement via une page de config locale, et
   **détecte un éventuel DHCP concurrent** sur le réseau pour éviter les conflits.
@@ -61,7 +61,7 @@ src/hestia/                # paquet Python de l'agent
 ├── display/               # interface d'affichage : console (dev) + e-paper
 ├── onboarding/            # 1er démarrage : détection DHCP + tutoriels par box
 ├── system/               # réseau : sonde DHCP, identification de la box
-└── updater/               # OTA : comparaison de versions, application (à venir)
+└── updater/               # OTA : source GitHub, signature, install atomique + rollback
 
 tests/                     # tests unitaires (pytest)
 systemd/                   # unités systemd (hestia-agent…)

@@ -13,9 +13,12 @@ dependencies = [
 net = ["scapy>=2.5"]
 # Rendu de l'écran e-paper (le pilote Waveshare est fourni à part sur la Pi).
 hardware = ["pillow>=10.0"]
+# Vérification de signature des mises à jour OTA.
+ota = ["cryptography>=42.0"]
 
 [project.scripts]
 hestia = "hestia.app:main"
+hestia-update = "hestia.updater.cli:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -36,6 +39,7 @@ include = ["src/hestia", "VERSION", "README.md"]
 dev = [
     "pytest>=8.0",
     "ruff>=0.6",
+    "cryptography>=42.0",  # pour tester la vérification de signature OTA
 ]
 
 [tool.ruff]

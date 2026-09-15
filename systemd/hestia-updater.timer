@@ -1,0 +1,14 @@
+[Unit]
+Description=Hestia — planification des mises à jour OTA
+
+[Timer]
+# Vérifie les mises à jour toutes les heures, avec un décalage aléatoire pour
+# étaler la charge sur la flotte (évite que tous les boîtiers interrogent en
+# même temps — cf. rollout progressif, ADR-0005).
+OnBootSec=10min
+OnUnitActiveSec=1h
+RandomizedDelaySec=30min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

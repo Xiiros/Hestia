@@ -38,6 +38,10 @@ class UpdateSettings:
 
     channel: str = "stable"  # "stable" ou "beta"
     check_seconds: int = 3600
+    repo: str = "Xiiros/Hestia"  # dépôt interrogé via l'API GitHub (owner/nom)
+    install_root: str = "/opt/hestia"  # contient releases/ et le lien current
+    public_key_path: str = "/etc/hestia/update-key.pub"  # clé publique Ed25519 (PEM)
+    asset_suffix: str = ".tar.gz"  # suffixe de l'artefact de mise à jour
 
 
 @dataclass(slots=True)

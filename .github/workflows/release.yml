@@ -1,11 +1,12 @@
 name: Release
 
-# Déclenché quand un tag vX.Y.Z est poussé (depuis une branche release/X.Y).
-# Génère les notes de version et crée la Release GitHub.
+# Déclenché quand un tag de version est poussé (depuis une branche release/X.Y).
+# Construit et signe l'artefact de mise à jour, puis crée la Release GitHub.
 on:
   push:
     tags:
-      - "v[0-9]+.[0-9]+.[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+"      # versions stables
+      - "v[0-9]+.[0-9]+.[0-9]+-*"    # pré-versions (canal beta), ex. v1.3.0-beta.1
 
 permissions:
   contents: write
@@ -26,19 +27,39 @@ jobs:
         env:
           OUTPUT: RELEASE_NOTES.md
 
+      - name: Construire l'artefact de mise à jour
+        run: |
+          tar czf "hestia-${GITHUB_REF_NAME}.tar.gz" \
+            src pyproject.toml uv.lock VERSION README.md
+
+      - name: Signer l'artefact (Ed25519)
+        env:
+          SIGNING_KEY: ${{ secrets.UPDATE_SIGNING_KEY }}
+        run: |
+          if [ -z "$SIGNING_KEY" ]; then
+            echo "::warning::UPDATE_SIGNING_KEY absent : artefact NON signé. Les"
+            echo "::warning::Raspberry Pi refuseront cette version (signature requise)."
+            exit 0
+          fi
+          printf '%s' "$SIGNING_KEY" > signing-key.pem
+          openssl pkeyutl -sign -inkey signing-key.pem -rawin \
+            -in "hestia-${GITHUB_REF_NAME}.tar.gz" \
+            -out "hestia-${GITHUB_REF_NAME}.tar.gz.sig"
+          rm -f signing-key.pem
+
       - name: Créer la Release GitHub
         uses: softprops/action-gh-release@v2
         with:
           name: "Hestia ${{ github.ref_name }}"
           body_path: RELEASE_NOTES.md
-          # Les Pi du canal beta puis stable se mettent à jour à partir d'ici.
-          # TODO: joindre l'image/artefact construit pour la Raspberry Pi :
-          # files: dist/hestia-${{ github.ref_name }}.img.xz
+          # Un tag contenant « - » (ex. v1.3.0-beta.1) est marqué pré-version :
+          # il n'atteint que le canal beta (voir hestia.updater.sources).
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          # La signature n'est jointe que si la clé est configurée ; sans elle,
+          # la release reste ignorée par les appareils (paire artefact+.sig requise).
+          files: |
+            hestia-${{ github.ref_name }}.tar.gz
+            hestia-${{ github.ref_name }}.tar.gz.sig
 
-      # -----------------------------------------------------------------------
-      # TODO — étape de déploiement vers le serveur de mise à jour :
-      #   1. Construire et SIGNER l'artefact.
-      #   2. Publier sur le canal BETA (tags v*-beta.N ou déclencheur manuel).
-      #   3. Rollout progressif sur STABLE (5% -> 25% -> 100%) après validation.
-      # À ne PAS pousser sur 100% de la flotte d'un coup.
-      # -----------------------------------------------------------------------
+      # Déploiement vers la flotte (rollout progressif beta -> stable par paliers)
+      # géré côté serveur de mise à jour : ne jamais pousser sur 100 % d'un coup.
