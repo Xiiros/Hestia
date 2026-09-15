@@ -50,6 +50,7 @@ class NetworkSettings:
 
     interface: str = "eth0"
     dhcp_probe_timeout: float = 5.0
+    first_boot_poll_seconds: float = 15.0  # intervalle de re-sonde en cas de conflit
 
 
 @dataclass(slots=True)
@@ -58,6 +59,8 @@ class Settings:
     display: DisplaySettings = field(default_factory=DisplaySettings)
     update: UpdateSettings = field(default_factory=UpdateSettings)
     network: NetworkSettings = field(default_factory=NetworkSettings)
+    # Données d'état persistantes (marqueur de premier démarrage, etc.).
+    state_dir: str = "/var/lib/hestia"
 
 
 def load_settings(path: Path | None = None) -> Settings:
@@ -69,9 +72,12 @@ def load_settings(path: Path | None = None) -> Settings:
         return Settings()
 
     data = tomllib.loads(path.read_text(encoding="utf-8"))
-    return Settings(
+    settings = Settings(
         adguard=AdGuardSettings(**data.get("adguard", {})),
         display=DisplaySettings(**data.get("display", {})),
         update=UpdateSettings(**data.get("update", {})),
         network=NetworkSettings(**data.get("network", {})),
     )
+    if "state_dir" in data:
+        settings.state_dir = data["state_dir"]
+    return settings

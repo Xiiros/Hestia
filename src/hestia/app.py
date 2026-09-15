@@ -12,12 +12,15 @@ from __future__ import annotations
 
 import argparse
 import time
+from pathlib import Path
 
 from hestia import __version__
 from hestia.adguard import AdGuardClient, AdGuardError, Stats
 from hestia.display import Display, build_display
 from hestia.display.views import dashboard
+from hestia.onboarding import firstboot
 from hestia.settings import Settings, load_settings
+from hestia.system import probe_dhcp_servers, read_ipv4_addresses, read_mac
 
 
 def _parse_args(argv: list[str] | None) -> argparse.Namespace:
@@ -36,9 +39,31 @@ def _run_demo(display: Display) -> None:
     display.show(dashboard(stats))
 
 
+def _first_boot(settings: Settings, display: Display) -> None:  # pragma: no cover - I/O
+    """Détecte et fait résoudre un conflit DHCP au tout premier démarrage."""
+
+    marker = Path(settings.state_dir) / "first-boot-done"
+    if firstboot.is_done(marker):
+        return
+
+    interface = settings.network.interface
+    resolved = firstboot.resolve_dhcp_conflict(
+        display,
+        probe_dhcp_servers,
+        interface,
+        read_mac(interface),
+        read_ipv4_addresses(interface),
+        poll_seconds=settings.network.first_boot_poll_seconds,
+        timeout=settings.network.dhcp_probe_timeout,
+    )
+    if resolved:
+        # TODO: activer le serveur DHCP d'AdGuard Home ici (via son API) avant
+        # de marquer le premier démarrage comme terminé.
+        firstboot.mark_done(marker)
+
+
 def _run(settings: Settings, display: Display) -> None:  # pragma: no cover - boucle
-    # Le premier démarrage (détection d'un DHCP concurrent) est branché ici via
-    # hestia.onboarding.run_first_boot une fois la sonde réseau disponible.
+    _first_boot(settings, display)
     with AdGuardClient(
         settings.adguard.base_url,
         settings.adguard.username,

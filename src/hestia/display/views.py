@@ -46,3 +46,17 @@ def onboarding_conflict(tutorial: Tutorial, server_ip: str) -> Screen:
             "activer Hestia (voir guide).",
         ],
     )
+
+
+def onboarding_resolved() -> Screen:
+    """Écran affiché une fois le conflit DHCP résolu."""
+
+    return Screen(
+        title="Hestia pret",
+        lines=[
+            "Aucun autre DHCP detecte.",
+            "",
+            "Hestia protege desormais",
+            "votre reseau.",
+        ],
+    )
