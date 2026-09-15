@@ -1,0 +1,46 @@
+name: CI
+
+# Contrôles lancés sur chaque Pull Request vers main ou une branche de release.
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+    branches:
+      - main
+      - "release/**"
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  titre-pr:
+    name: Titre de PR (Conventional Commits)
+    runs-on: ubuntu-latest
+    steps:
+      # Le merge se fait en « squash » : le titre de la PR devient le message de
+      # commit sur main. On vérifie donc qu'il respecte les Conventional Commits.
+      - uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            perf
+            refactor
+            docs
+            test
+            build
+            ci
+            chore
+            revert
+
+  tests:
+    name: Lint & tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # TODO: remplacer par le lint et les tests réels une fois le langage choisi
+      # (ex: cargo test, npm test, pytest…). Garder ce job vert et obligatoire.
+      - name: Placeholder
+        run: echo "Aucun test pour l'instant — à compléter quand le code arrive."

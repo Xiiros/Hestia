@@ -1,0 +1,104 @@
+name: Préparer une release
+
+# Lancé manuellement (Actions > Préparer une release > Run workflow).
+# Calcule la prochaine version à partir des commits, crée la branche
+# release/X.Y, met à jour VERSION + CHANGELOG et pousse la branche.
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Type d'incrément de version"
+        type: choice
+        default: auto
+        options:
+          - auto      # déduit des commits (feat -> mineur, fix -> patch, rupture -> majeur)
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+
+jobs:
+  preparer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Installer git-cliff
+        uses: taiki-e/install-action@v2
+        with:
+          tool: git-cliff
+
+      - name: Configurer git
+        run: |
+          git config user.name "hestia-release-bot"
+          git config user.email "release-bot@users.noreply.github.com"
+
+      - name: Calculer la prochaine version
+        id: version
+        run: |
+          set -euo pipefail
+          last_tag="$(git describe --tags --abbrev=0 2>/dev/null || echo v0.0.0)"
+          echo "Dernier tag: $last_tag"
+          base="${last_tag#v}"
+          IFS='.' read -r major minor patch <<< "$base"
+
+          case "${{ github.event.inputs.bump }}" in
+            auto)
+              next="$(git cliff --bumped-version 2>/dev/null || echo "$last_tag")"
+              next="${next#v}"
+              ;;
+            major) next="$((major + 1)).0.0" ;;
+            minor) next="${major}.$((minor + 1)).0" ;;
+            patch) next="${major}.${minor}.$((patch + 1))" ;;
+          esac
+
+          if [ "$next" = "$base" ] || [ -z "$next" ]; then
+            echo "::error::Aucun changement à publier depuis $last_tag."
+            exit 1
+          fi
+
+          series="$(echo "$next" | cut -d. -f1,2)"
+          echo "version=$next" >> "$GITHUB_OUTPUT"
+          echo "branch=release/$series" >> "$GITHUB_OUTPUT"
+          echo "Prochaine version: $next (branche release/$series)"
+
+      - name: Créer la branche de release
+        run: git checkout -b "${{ steps.version.outputs.branch }}"
+
+      - name: Mettre à jour VERSION et CHANGELOG
+        run: |
+          set -euo pipefail
+          echo "${{ steps.version.outputs.version }}" > VERSION
+          git cliff --tag "v${{ steps.version.outputs.version }}" -o CHANGELOG.md
+
+      - name: Committer et pousser
+        run: |
+          set -euo pipefail
+          git add VERSION CHANGELOG.md
+          git commit -m "chore(release): prépare la v${{ steps.version.outputs.version }}"
+          git push -u origin "${{ steps.version.outputs.branch }}"
+
+      - name: Récapitulatif
+        run: |
+          {
+            echo "## Branche de release prête 🎉"
+            echo ""
+            echo "- **Version**: \`v${{ steps.version.outputs.version }}\`"
+            echo "- **Branche**: \`${{ steps.version.outputs.branch }}\`"
+            echo ""
+            echo "### Étapes suivantes"
+            echo "1. Stabiliser sur cette branche (seulement des \`fix:\`)."
+            echo "2. Tester sur les Raspberry Pi du canal **beta**."
+            echo "3. Quand c'est bon, poser le tag pour publier :"
+            echo '   ```'
+            echo "   git checkout ${{ steps.version.outputs.branch }} && git pull"
+            echo "   git tag v${{ steps.version.outputs.version }}"
+            echo "   git push origin v${{ steps.version.outputs.version }}"
+            echo '   ```'
+            echo "4. Reporter les corrections vers main (voir docs/RELEASING.md)."
+          } >> "$GITHUB_STEP_SUMMARY"

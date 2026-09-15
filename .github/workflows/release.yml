@@ -1,0 +1,44 @@
+name: Release
+
+# Déclenché quand un tag vX.Y.Z est poussé (depuis une branche release/X.Y).
+# Génère les notes de version et crée la Release GitHub.
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+
+permissions:
+  contents: write
+
+jobs:
+  publier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Générer les notes de version
+        uses: orhun/git-cliff-action@v4
+        id: cliff
+        with:
+          args: --latest --strip header
+        env:
+          OUTPUT: RELEASE_NOTES.md
+
+      - name: Créer la Release GitHub
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "Hestia ${{ github.ref_name }}"
+          body_path: RELEASE_NOTES.md
+          # Les Pi du canal beta puis stable se mettent à jour à partir d'ici.
+          # TODO: joindre l'image/artefact construit pour la Raspberry Pi :
+          # files: dist/hestia-${{ github.ref_name }}.img.xz
+
+      # -----------------------------------------------------------------------
+      # TODO — étape de déploiement vers le serveur de mise à jour :
+      #   1. Construire et SIGNER l'artefact.
+      #   2. Publier sur le canal BETA (tags v*-beta.N ou déclencheur manuel).
+      #   3. Rollout progressif sur STABLE (5% -> 25% -> 100%) après validation.
+      # À ne PAS pousser sur 100% de la flotte d'un coup.
+      # -----------------------------------------------------------------------
