@@ -6,6 +6,18 @@ depuis une carte vierge jusqu'au service qui démarre tout seul.
 > Les commandes sont à lancer sur la Raspberry Pi (en SSH ou clavier/écran), avec
 > un utilisateur disposant de `sudo`.
 
+> **Raccourci** : une fois les étapes 1 à 3 faites (système + AdGuard Home), le
+> script [`scripts/install.sh`](../scripts/install.sh) automatise les étapes 4 à 7
+> (déploiement, dépendances, config, services) :
+>
+> ```bash
+> git clone https://github.com/Xiiros/Hestia.git /tmp/hestia && \
+>   sudo INSTALL_WAVESHARE=1 /tmp/hestia/scripts/install.sh
+> ```
+>
+> Les sections ci-dessous détaillent chaque étape (utile pour comprendre ou
+> dépanner).
+
 ## 1. Prérequis
 
 **Matériel**
