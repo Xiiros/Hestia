@@ -118,11 +118,21 @@ cp -r /tmp/e-Paper/RaspberryPi_JetsonNano/python/lib/waveshare_epd \
 > Le nom du module correspond au réglage `display.model` (par défaut `epd2in13_V4`).
 > Adaptez-le au modèle réellement branché.
 
-> **Repli fenêtre bureau** : si l'écran e-paper n'est pas détecté, l'agent affiche
-> le flux dans une fenêtre sur le bureau (utile pour tester sans écran). Cela
-> requiert un environnement graphique et `python3-tk` :
-> `sudo apt install -y python3-tk`. Sans affichage graphique, il retombe sur la
-> console (journaux).
+> **Repli fenêtre bureau** : si l'écran e-paper n'est pas détecté, l'agent peut
+> afficher le flux dans une fenêtre sur le bureau. Cela requiert un environnement
+> graphique et `python3-tk` : `sudo apt install -y python3-tk`.
+>
+> Tester la fenêtre (depuis un terminal **du bureau** de la Pi) :
+>
+> ```bash
+> /opt/hestia/.venv/bin/hestia --demo --window
+> ```
+>
+> ⚠️ **Au démarrage**, l'agent est lancé par un service systemd **root sans
+> session graphique** (`$DISPLAY` absent) : la fenêtre ne peut donc pas s'ouvrir
+> et l'agent retombe sur la console (voir `journalctl -u hestia-agent`). Pour
+> afficher la fenêtre automatiquement au boot, il faut lancer l'agent **dans la
+> session du bureau** (autostart de l'utilisateur), et non depuis le service root.
 
 ## 6. Configuration
 

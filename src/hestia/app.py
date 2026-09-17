@@ -36,6 +36,11 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
         metavar="FICHIER",
         help="en démo : rend l'écran dans ce fichier PNG au lieu du terminal",
     )
+    parser.add_argument(
+        "--window",
+        action="store_true",
+        help="en démo : ouvre une fenêtre bureau (nécessite un affichage graphique)",
+    )
     return parser.parse_args(argv)
 
 
@@ -111,7 +116,12 @@ def _run(settings: Settings, display: Display) -> None:  # pragma: no cover - bo
             time.sleep(settings.display.refresh_seconds)
 
 
-def _demo_display(png_path: str | None) -> Display:
+def _demo_display(*, png_path: str | None = None, window: bool = False) -> Display:
+    if window:
+        from hestia.display.render import DisplaySpec
+        from hestia.display.window import WindowDisplay
+
+        return WindowDisplay(DisplaySpec())
     if png_path:
         from hestia.display.png import PngDisplay
         from hestia.display.render import DisplaySpec
@@ -126,10 +136,12 @@ def main(argv: list[str] | None = None) -> int:
     args = _parse_args(argv)
 
     if args.demo:
-        display = _demo_display(args.png)
+        display = _demo_display(png_path=args.png, window=args.window)
         _run_demo(display)
         if args.png:
             print(f"[hestia] écran rendu dans {args.png}")
+        if args.window:
+            display.wait()  # garde la fenêtre ouverte jusqu'à sa fermeture
         return 0
 
     settings = load_settings()
