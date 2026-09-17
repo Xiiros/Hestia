@@ -27,7 +27,8 @@ class AdGuardSettings:
 class DisplaySettings:
     """Configuration de l'écran."""
 
-    # "console" ou "png" pour le développement, "epaper" sur la Raspberry Pi.
+    # "console"/"png"/"window" (dev) ou "epaper" (Pi). "epaper" bascule
+    # automatiquement sur une fenêtre bureau puis la console si non détecté.
     kind: str = "console"
     refresh_seconds: int = 30
     # Géométrie (indépendante du pilote) — à ajuster selon le modèle d'écran.
