@@ -40,3 +40,7 @@ class WindowDisplay(Display):
     def clear(self) -> None:  # pragma: no cover - dépend de l'affichage
         self._label.configure(image="")
         self._root.update()
+
+    def wait(self) -> None:  # pragma: no cover - dépend de l'affichage
+        """Garde la fenêtre ouverte (boucle d'événements Tk) jusqu'à sa fermeture."""
+        self._root.mainloop()

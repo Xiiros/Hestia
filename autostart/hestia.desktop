@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Hestia
+Comment=Agent Hestia — tableau de bord et premier démarrage
+Exec=/opt/hestia/.venv/bin/hestia
+Terminal=false
+X-GNOME-Autostart-enabled=true
