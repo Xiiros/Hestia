@@ -131,8 +131,28 @@ cp -r /tmp/e-Paper/RaspberryPi_JetsonNano/python/lib/waveshare_epd \
 > ⚠️ **Au démarrage**, l'agent est lancé par un service systemd **root sans
 > session graphique** (`$DISPLAY` absent) : la fenêtre ne peut donc pas s'ouvrir
 > et l'agent retombe sur la console (voir `journalctl -u hestia-agent`). Pour
-> afficher la fenêtre automatiquement au boot, il faut lancer l'agent **dans la
-> session du bureau** (autostart de l'utilisateur), et non depuis le service root.
+> afficher la fenêtre **automatiquement au boot**, activez le *mode bureau*
+> ci-dessous.
+
+### Mode bureau (fenêtre au démarrage, sans écran e-paper)
+
+Ce mode fait démarrer l'agent **dans la session du bureau** (pour afficher la
+fenêtre) au lieu du service root, et accorde à l'interpréteur Python la capacité
+`CAP_NET_RAW` pour que la sonde DHCP fonctionne **sans root** :
+
+```bash
+sudo HESTIA_USER=pi /opt/hestia/scripts/enable-desktop-mode.sh
+```
+
+Ou directement à l'installation : `sudo INSTALL_AUTOSTART=1 .../scripts/install.sh`.
+
+Le script installe l'autostart (`~/.config/autostart/hestia.desktop`), applique
+`setcap` et désactive le service root `hestia-agent` (pour ne pas avoir deux
+agents). Le timer de mises à jour reste actif.
+
+> **Note sécurité** : `CAP_NET_RAW` est accordé à l'interpréteur du venv ; sur un
+> boîtier dédié à Hestia c'est acceptable. Pour un usage e-paper classique (sans
+> bureau), gardez le service root et ignorez ce mode.
 
 ## 6. Configuration
 

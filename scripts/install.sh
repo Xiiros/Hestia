@@ -29,7 +29,7 @@ fi
 log "Dépendances système"
 if command -v apt-get >/dev/null 2>&1; then
   apt-get update -qq
-  apt-get install -y -qq git openssl python3 fonts-dejavu-core
+  apt-get install -y -qq git openssl python3 fonts-dejavu-core libcap2-bin
 else
   warn "apt-get introuvable : installez git, openssl et python3 manuellement."
 fi
@@ -92,12 +92,19 @@ cp "$HESTIA_DIR"/systemd/hestia-agent.service \
    "$HESTIA_DIR"/systemd/hestia-updater.timer \
    /etc/systemd/system/
 systemctl daemon-reload
-systemctl enable hestia-agent.service >/dev/null
 systemctl enable --now hestia-updater.timer >/dev/null
 
-if [ "${START_AGENT:-0}" = "1" ]; then
-  log "Démarrage de l'agent"
-  systemctl restart hestia-agent.service
+if [ "${INSTALL_AUTOSTART:-0}" = "1" ]; then
+  # Mode bureau : l'agent démarre dans la session graphique (fenêtre), pas via
+  # le service root. La sonde DHCP passe par CAP_NET_RAW (voir le script).
+  HESTIA_DIR="$HESTIA_DIR" HESTIA_USER="${HESTIA_USER:-${SUDO_USER:-pi}}" \
+    "$HESTIA_DIR/scripts/enable-desktop-mode.sh"
+else
+  systemctl enable hestia-agent.service >/dev/null
+  if [ "${START_AGENT:-0}" = "1" ]; then
+    log "Démarrage de l'agent"
+    systemctl restart hestia-agent.service
+  fi
 fi
 
 # --- Récapitulatif -----------------------------------------------------------
