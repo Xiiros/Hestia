@@ -11,7 +11,10 @@ username = "admin"
 password = ""              # mot de passe de l'interface AdGuard Home
 
 [display]
-kind = "epaper"            # "console" ou "png" en développement, "epaper" sur la Pi
+# "console"/"png"/"window" (dev) ou "epaper" (Pi).
+# "epaper" : si l'écran n'est pas détecté, bascule sur une fenêtre bureau
+# (nécessite un bureau + python3-tk), puis sur la console.
+kind = "epaper"
 refresh_seconds = 30
 width = 250                # géométrie de l'écran (selon le modèle)
 height = 122

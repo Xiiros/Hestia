@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -11,7 +12,29 @@ from hestia.display.console import ConsoleDisplay
 if TYPE_CHECKING:
     from hestia.settings import DisplaySettings
 
-__all__ = ["Display", "Screen", "ConsoleDisplay", "build_display"]
+__all__ = ["Display", "Screen", "ConsoleDisplay", "build_display", "choose_display"]
+
+
+def _warn(message: str) -> None:
+    print(f"[hestia] {message}")
+
+
+def choose_display(candidates: list[tuple[str, Callable[[], Display]]]) -> Display:
+    """Essaie chaque fabrique dans l'ordre ; renvoie le premier écran construit.
+
+    Permet la bascule automatique e-paper → fenêtre bureau → console : une
+    fabrique qui échoue (matériel absent, pas d'affichage graphique…) est
+    signalée, et on passe à la suivante.
+    """
+
+    last_exc: Exception | None = None
+    for label, factory in candidates:
+        try:
+            return factory()
+        except Exception as exc:  # matériel/pilote/affichage indisponible
+            last_exc = exc
+            _warn(f"écran « {label} » indisponible : {exc}")
+    raise last_exc or RuntimeError("aucun écran disponible")
 
 
 def build_display(settings: DisplaySettings) -> Display:
@@ -19,7 +42,9 @@ def build_display(settings: DisplaySettings) -> Display:
 
     - ``console`` : rendu texte dans le terminal (dev) ;
     - ``png``     : rendu dans un fichier PNG (prévisualisation sans matériel) ;
-    - ``epaper``  : écran e-paper Waveshare (Raspberry Pi).
+    - ``window``  : fenêtre sur le bureau (repli sur console si pas d'affichage) ;
+    - ``epaper``  : écran e-paper Waveshare ; **si non détecté, bascule sur une
+      fenêtre bureau, puis sur la console**.
     """
 
     if settings.kind == "console":
@@ -39,9 +64,26 @@ def build_display(settings: DisplaySettings) -> Display:
 
         return PngDisplay(spec, Path(settings.png_path))
 
+    if settings.kind == "window":
+        from hestia.display.window import WindowDisplay
+
+        return choose_display(
+            [
+                ("window", lambda: WindowDisplay(spec)),
+                ("console", ConsoleDisplay),
+            ]
+        )
+
     if settings.kind == "epaper":
         from hestia.display.epaper import EPaperDisplay
+        from hestia.display.window import WindowDisplay
 
-        return EPaperDisplay(spec, settings.model)
+        return choose_display(
+            [
+                ("epaper", lambda: EPaperDisplay(spec, settings.model)),
+                ("window", lambda: WindowDisplay(spec)),
+                ("console", ConsoleDisplay),
+            ]
+        )
 
     raise ValueError(f"type d'écran inconnu : {settings.kind!r}")

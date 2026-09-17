@@ -118,6 +118,12 @@ cp -r /tmp/e-Paper/RaspberryPi_JetsonNano/python/lib/waveshare_epd \
 > Le nom du module correspond au réglage `display.model` (par défaut `epd2in13_V4`).
 > Adaptez-le au modèle réellement branché.
 
+> **Repli fenêtre bureau** : si l'écran e-paper n'est pas détecté, l'agent affiche
+> le flux dans une fenêtre sur le bureau (utile pour tester sans écran). Cela
+> requiert un environnement graphique et `python3-tk` :
+> `sudo apt install -y python3-tk`. Sans affichage graphique, il retombe sur la
+> console (journaux).
+
 ## 6. Configuration
 
 Créer les répertoires d'état et de configuration :

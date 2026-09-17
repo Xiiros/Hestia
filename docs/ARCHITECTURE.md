@@ -84,8 +84,13 @@ uv run ruff check . && uv run pytest
 
 Le rendu est **indépendant du modèle** d'écran (`display/render.py` dessine dans
 une image PIL de taille configurable). Le même rendu alimente l'afficheur PNG de
-test et l'e-paper réel ; seule la liaison au pilote Waveshare (`display/epaper.py`,
-choisie par `display.model`) dépend du modèle.
+test, la fenêtre bureau et l'e-paper réel ; seule la liaison au pilote Waveshare
+(`display/epaper.py`, choisie par `display.model`) dépend du modèle.
+
+**Repli automatique** : avec `display.kind = "epaper"`, si l'écran e-paper n'est
+pas détecté, l'agent bascule sur une **fenêtre bureau** (`display/window.py`,
+Tkinter) affichant le même flux, puis sur la **console** si aucun affichage
+graphique n'est disponible (`display/__init__.py:choose_display`).
 
 Le fichier [`VERSION`](../VERSION) (déjà présent) est la version affichée à
 l'écran et la référence de l'updater pour comparer les versions.
