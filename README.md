@@ -15,6 +15,7 @@ distance.
 ## Documentation
 
 - [Installation sur Raspberry Pi](docs/INSTALL.md) — de la carte vierge au service.
+- [Validation terrain](docs/VALIDATION.md) — checklist du premier montage sur Pi.
 - [Architecture](docs/ARCHITECTURE.md) — vue d'ensemble technique.
 - [Mises à jour OTA](docs/OTA.md) — signature, canaux, installation avec rollback.
 - [Décisions d'architecture (ADR)](docs/adr/) — les choix techniques et leur *pourquoi*.
