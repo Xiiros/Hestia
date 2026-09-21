@@ -1,0 +1,43 @@
+# Montage Hestia en conteneurs (Docker Compose v2 ou podman-compose).
+#
+# Deux services en réseau host : AdGuard Home (moteur DNS/DHCP) et l'agent Hestia.
+# Le réseau host est indispensable (DHCP/DNS du foyer + sonde qui écoute les
+# broadcasts du LAN). Voir docs/DOCKER.md pour la préparation de l'hôte.
+
+services:
+  adguardhome:
+    image: adguard/adguardhome:latest
+    container_name: adguardhome
+    network_mode: host
+    restart: unless-stopped
+    volumes:
+      - adguard-work:/opt/adguardhome/work
+      - adguard-conf:/opt/adguardhome/conf
+    cap_add:
+      - NET_ADMIN  # requis par le serveur DHCP d'AdGuard Home
+
+  hestia-agent:
+    build:
+      context: .
+      # WAVESHARE=0 pour une image sans le pilote e-paper (dev/headless).
+      args:
+        WAVESHARE: "1"
+    image: hestia-agent:latest
+    container_name: hestia-agent
+    network_mode: host
+    restart: unless-stopped
+    depends_on:
+      - adguardhome
+    cap_add:
+      - NET_RAW    # sonde DHCP (scapy, sockets bruts)
+    devices:
+      # Écran e-paper (SPI/GPIO) — adaptez selon votre Pi ; retirez si sans écran.
+      - /dev/spidev0.0:/dev/spidev0.0
+      - /dev/gpiomem:/dev/gpiomem
+    volumes:
+      - /etc/hestia:/etc/hestia:ro        # config.toml + clé publique OTA
+      - /var/lib/hestia:/var/lib/hestia   # marqueur de premier démarrage (persistant)
+
+volumes:
+  adguard-work:
+  adguard-conf:
