@@ -1,0 +1,22 @@
+# Environnements et caches (recréés dans l'image)
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+dist/
+build/
+*.egg-info/
+
+# Historique et CI
+.git/
+.github/
+
+# Tests et docs (inutiles dans l'image runtime)
+tests/
+docs/
+
+# Divers
+*.log
+*.tmp
+RELEASE_NOTES.md

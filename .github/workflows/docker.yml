@@ -1,0 +1,34 @@
+name: Docker
+
+# Vérifie que l'image de l'agent se construit, quand les fichiers Docker changent.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - main
+      - "release/**"
+    paths:
+      - "Dockerfile"
+      - ".dockerignore"
+      - "compose.yaml"
+      - "pyproject.toml"
+      - "uv.lock"
+      - "src/**"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build image (sans pilote e-paper)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Construire l'image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          # WAVESHARE=0 : pas de clone Waveshare, build plus rapide et sans réseau tiers.
+          build-args: |
+            WAVESHARE=0
